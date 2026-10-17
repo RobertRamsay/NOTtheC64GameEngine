@@ -54,7 +54,7 @@ if (show_debug)
             + "  groups " + string(world.vis_groups) + "/" + string(array_length(world.groups)) + "  movers " + string(array_length(world.movers)),
         "last action: " + world.last_event,
         "F5 dither " + _dith + "   F6 CRT " + _crt + "   F7 Pepto lock " + _lock + "   F8 portal culling " + _vis + "   N noclip   F1 hide",
-        "Click to capture mouse, Tab/Esc to release. WASD + Shift, Space/C fly in noclip. E use, Ctrl (or click when captured) shoot.",
+        "Click to capture mouse, Tab/Esc to release. WASD + Shift, Space jump (Space/C fly in noclip). E use, Ctrl (or click when captured) shoot.",
         _aud
     ];
 

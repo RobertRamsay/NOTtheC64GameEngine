@@ -68,6 +68,6 @@ true / false (`scr_build`).
 ## Keys
 
 WASD move, mouse look (click to capture, Tab / Esc to release), E use, Ctrl (or click
-while captured) shoot, Space / C fly up / down in noclip, N noclip, F2 palette/texture
+while captured) shoot, Space jump (Space / C fly up / down in noclip), N noclip, F2 palette/texture
 strip, F5 dither, F6 CRT, F7 palette lock on/off (debug only), F8 portal culling on/off,
 F9 audio test (dual SID + PCM), F1 debug text.

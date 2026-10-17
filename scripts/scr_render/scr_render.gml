@@ -233,7 +233,7 @@ function autoshot_setup()
 
 /// @desc One Step of the self-test: the -Use press and the -Walk script.
 /// Script commands (comma separated): f<n> / b<n> forward / back n frames,
-/// l<n> / r<n> strafe, w<n> wait, t<deg> turn left, e use, s shoot,
+/// l<n> / r<n> strafe, w<n> wait, t<deg> turn left, e use, s shoot, j jump,
 /// p print "WALK x, y, z sector" to the log.
 function autoshot_step()
 {
@@ -243,6 +243,7 @@ function autoshot_step()
     }
     var _fwd = 0;
     var _side = 0;
+    var _up = 0;
     while (shot_walk_i < array_length(shot_walk))
     {
         var _cmd = string_trim(shot_walk[shot_walk_i]);
@@ -252,10 +253,14 @@ function autoshot_step()
         {
             _arg = real(string_delete(_cmd, 1, 1));
         }
-        if (_op == "t" || _op == "e" || _op == "s" || _op == "p")
+        if (_op == "t" || _op == "e" || _op == "s" || _op == "p" || _op == "j")
         {
             // Instant commands
-            if (_op == "t")
+            if (_op == "j")
+            {
+                _up = 1;
+            }
+            else if (_op == "t")
             {
                 pl_yaw = (pl_yaw + _arg + 360) mod 360;
             }
@@ -304,7 +309,7 @@ function autoshot_step()
     }
     if (!pl_noclip)
     {
-        pawn_walk(world, _fwd, _side, 0, PL_WALK);
+        pawn_walk(world, _fwd, _side, _up, PL_WALK);
     }
 }
 

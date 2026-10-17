@@ -18,6 +18,9 @@
 #macro PL_WALK   4
 #macro PL_RUN    8
 #macro PL_GRAVITY 0.8
+/// Take-off speed of a jump (units / frame). At gravity 0.8 it clears about
+/// 48 units: twice a step, so a jump reaches ledges walking can't.
+#macro PL_JUMP   8.8
 #macro PL_MOUSE_SENS 0.15
 /// Downward step that is followed instead of fallen (slopes, lifts going down).
 #macro PL_STICK  8
@@ -53,8 +56,10 @@ function pawn_spawn(_w)
     {
         pl_z = 0;
     }
-    pl_floorz = pl_z;
-    pl_ceilz = pl_z + PL_HEAD;
+    // Real floor / ceiling from the start, so a jump works on the first frame
+    var _hz = pawn_heights(_w, pl_x, pl_y, pl_z);
+    pl_floorz = _hz[0];
+    pl_ceilz = _hz[1];
     pl_on_ground = true;
     pl_view_z = pl_z + PL_EYE;
 }
@@ -438,7 +443,8 @@ function pawn_update(_w)
     pawn_walk(_w, _fwd, _side, _up, _speed);
 }
 
-/// @desc Move by intent: _fwd / _side / _up in -1..1 (up only flies in noclip).
+/// @desc Move by intent: _fwd / _side / _up in -1..1. Walking, _up > 0 jumps
+/// (from the ground only, held Space keeps hopping); in noclip it flies.
 /// The keyboard and the self-test's walk script both come through here.
 function pawn_walk(_w, _fwd, _side, _up, _speed)
 {
@@ -458,6 +464,12 @@ function pawn_walk(_w, _fwd, _side, _up, _speed)
         pl_view_z = pl_z + PL_EYE;
         pl_sector = world_sector_at(_w, pl_x, pl_y, pl_z);
         return;
+    }
+
+    if (_up > 0 && pl_on_ground && pl_ceilz - pl_z > PL_HEAD + 4)
+    {
+        pl_vz = PL_JUMP;
+        pl_on_ground = false;
     }
 
     pawn_move(_w, _dx, _dy);
@@ -485,8 +497,9 @@ function pawn_settle(_w)
         pl_z = pl_floorz;
         pl_vz = 0;
     }
-    else if (pl_z > pl_floorz)
+    else if (pl_z > pl_floorz || pl_vz > 0)
     {
+        // Falling, or rising from a jump
         pl_vz -= _w.gravity;
         pl_z += pl_vz;
         if (pl_z <= pl_floorz)
