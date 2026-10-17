@@ -54,7 +54,7 @@ function render_world(_baked)
     surface_set_target(rt_world);
     draw_clear_alpha(c_black, 1);
 
-    camera_set_view_mat(cam, player_view_matrix());
+    camera_set_view_mat(cam, pawn_view_matrix());
     // RENDER_FOV is horizontal (Doom's 90); GameMaker wants vertical. Negative
     // FOV and aspect are GameMaker's usual fix-up for a +Z-up camera.
     var _vfov = 2 * darctan(dtan(RENDER_FOV / 2) * RENDER_H / RENDER_W);

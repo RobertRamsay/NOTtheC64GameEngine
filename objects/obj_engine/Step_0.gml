@@ -69,5 +69,5 @@ if (keyboard_check_pressed(vk_f7))
 
 if (shot_path == "")
 {
-    player_update(level);
+    pawn_update(level);
 }

@@ -1,4 +1,4 @@
-/// scr_player
+/// scr_pawn
 /// First-person camera and movement. Collision is sector based: a move is
 /// allowed when every corner of the player's box lands in a sector whose floor
 /// is at most PL_STEP above the feet and whose height leaves PL_HEAD of room.
@@ -16,7 +16,7 @@
 #macro PL_GRAVITY 0.8
 #macro PL_MOUSE_SENS 0.15
 
-function player_spawn(_level)
+function pawn_spawn(_level)
 {
     pl_x = _level.start.x;
     pl_y = _level.start.y;
@@ -36,7 +36,7 @@ function player_spawn(_level)
 }
 
 /// @desc Can the player's feet at height _feet stand at (_px, _py)?
-function player_spot_ok(_level, _px, _py, _feet)
+function pawn_spot_ok(_level, _px, _py, _feet)
 {
     var _corners = [-1, -1, 1, -1, 1, 1, -1, 1];
     for (var _i = 0; _i < 4; _i++)
@@ -62,7 +62,7 @@ function player_spot_ok(_level, _px, _py, _feet)
 }
 
 /// @desc Mouse capture, look and movement. Call once per Step.
-function player_update(_level)
+function pawn_update(_level)
 {
     // --- Mouse capture ---
     if (!mouse_captured && mouse_check_button_pressed(mb_left))
@@ -150,11 +150,11 @@ function player_update(_level)
     }
 
     // Axis by axis, so the player slides along walls
-    if (player_spot_ok(_level, pl_x + _dx, pl_y, pl_z))
+    if (pawn_spot_ok(_level, pl_x + _dx, pl_y, pl_z))
     {
         pl_x += _dx;
     }
-    if (player_spot_ok(_level, pl_x, pl_y + _dy, pl_z))
+    if (pawn_spot_ok(_level, pl_x, pl_y + _dy, pl_z))
     {
         pl_y += _dy;
     }
@@ -196,7 +196,7 @@ function player_update(_level)
 }
 
 /// @desc View matrix for the player's eye (+Z up).
-function player_view_matrix()
+function pawn_view_matrix()
 {
     var _lx = dcos(pl_yaw) * dcos(pl_pitch);
     var _ly = -dsin(pl_yaw) * dcos(pl_pitch);

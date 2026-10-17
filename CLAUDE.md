@@ -11,6 +11,16 @@ Sibling projects we borrow from (read-only, never edit them from here):
 `D:\POLYTRICITY\C64DevMachine_GIT\C64DevMachine_win.yyp` (sid64 reSID extension,
 Music Maker tracker), `D:\POLYTRICITY\ADAM` (play-queue streaming, tracker UX).
 
+## Two programs: Editor and Player (design doc §0)
+
+The **Editor** (what people make games with) and the **Player** (the runtime that
+ships with every exported game) are separate programs built from this one
+project. `Default` config = Editor, `Player` config = Player, with `NTC64_EDITOR`
+true / false (`scr_build`).
+- **Engine scripts never call Editor scripts.** Editor -> engine is fine; engine -> editor never.
+- The Player only reads a **game pack** (data, versioned by `NTC64_PACK_VERSION`). It never runs author code and never opens file dialogs.
+- Any change to the pack format goes in the editor's writer and the Player's reader in the same commit.
+
 ## Golden rules (Bob's conventions — always follow)
 
 - **Initialise every instance variable in `obj_engine` Create** (arrays, structs, flags). Never rely on `variable_struct_exists` / `variable_instance_exists`. For data read from JSON, use `struct[$ "key"]` and `is_undefined` / `is_array` / `is_string`.
@@ -34,10 +44,11 @@ Music Maker tracker), `D:\POLYTRICITY\ADAM` (play-queue streaming, tracker UX).
 | Resource | Role |
 |---|---|
 | `objects/obj_engine` | The only object. Create = all state, Step = input + player, Draw = 3D into `rt_world` + lock pass, Draw GUI = present + debug text, CleanUp = free everything. |
+| `scripts/scr_build` | `NTC64_EDITOR` (per build config), `NTC64_VERSION`, `NTC64_PACK_VERSION`. |
 | `scripts/scr_pepto` | Pepto palette: `pepto_colour`, `pepto_nearest`, `pepto_uniform_array`, `pepto_is_exact`. |
 | `scripts/scr_tex` | Index-image textures (<= 16 x 16) -> GameMaker sprites; procedural test set. |
 | `scripts/scr_world` | Sector level model, test level, vertex-buffer baking per texture, sector lookup. |
-| `scripts/scr_player` | FPS camera, movement with step-up / headroom sector collision. |
+| `scripts/scr_pawn` | The first-person character ("pawn", so it is never confused with the Player program): camera, movement with step-up / headroom sector collision. |
 | `scripts/scr_render` | Render targets, world pass, palette-lock pass, present (+ CRT), auto-screenshot. |
 | `scripts/scr_postfx` | CRT parameters and uniforms (from PiX3LL3D `POSTFX_system`). |
 | `shaders/sh_world` | Texture x light x distance falloff, alpha test. |

@@ -16,6 +16,62 @@ should stay exportable to a real dual-SID setup later.
 
 ---
 
+## 0. Two programs: the Editor and the Player
+
+NOTtheC64GameEngine is **two separate programs**, the same split as Doom's
+editors vs. the Doom exe:
+
+| | **Editor** | **Player** |
+|---|---|---|
+| What | The tool people make games with: map editor, texture / pixel editor, SID tracker, game logic, test play. | The small runtime that **ships with every game** made with the editor. |
+| Who builds it | Us (Polytricity), released to users. | Us, **prebuilt once per engine version**, carried inside the Editor. Users never need GameMaker. |
+| Contains | Engine core + all editor code. | Engine core only: renderer, palette lock, collision, game logic, audio (sid64), game-pack loader. No editor code paths, file dialogs or tool UI. |
+| Reads | Project files (`.ntc64proj`, editable, JSON). | One **game pack** (`game.ntc64`) next to the exe: levels, textures, songs, logic, settings — data only, never code. |
+
+**Export** (Editor -> "Build game"): copy the prebuilt Player (exe, data file,
+`sid64.dll`), write `game.ntc64` from the project, add the licence files, and
+zip it or make an installer. Same model as ADAM: a fixed engine plus a data block.
+
+### Rules this puts on the code
+* **Engine core never calls editor code.** Scripts are split into `Engine` (shared),
+  `Editor` (editor only) and a thin per-program boot. The editor may call the
+  engine; never the other way round. Test play in the editor runs the *same*
+  engine core, fed from the project in memory instead of a pack file.
+* The **game pack is a versioned contract** (`NTC64_PACK_VERSION`). A Player must
+  load every pack version up to its own; the editor writes the current one.
+  The format will be specified in `docs/GAME_PACK.md` before the first exporter.
+  Any change to it is made in both places: the editor's writer and the Player's reader.
+* Anything a game can do at run time (sector specials, doors, triggers, music
+  cues, SFX) must be **data-driven** from the pack. Game authors cannot add code
+  to the Player.
+
+### How it is built (GameMaker)
+* **One GameMaker project, two build configurations:** `Default` = Editor and
+  `Player`. The macro `NTC64_EDITOR` (in `scr_build`) is `true` in Default and
+  `false` in Player, so the boot code picks which program it is.
+* `powershell -File tools\build.ps1 -Config Player` builds the Player. The
+  Editor's release script copies that build into the Editor's included files
+  (`datafiles/player/`) so Export has something to copy.
+* Alternative if the Player ever needs to be smaller or cleaner: move `Engine`
+  scripts into a GameMaker local package shared by two projects. The rules
+  above keep that move cheap.
+
+### Open question: GPL and the GameMaker runner
+reSID is GPL v2, so every exported game's Player contains GPL code. Two
+consequences to settle before the first public release:
+1. Exported games need the GPL text and the Player's source (or a written offer
+   for it). The game's own data (levels, art, music in the pack) is loaded at
+   run time and stays the author's.
+2. The Player is a **proprietary GameMaker runner loading a GPL DLL**. Whether
+   distributing that combination is allowed under GPL v2 needs a proper licence
+   check. If it is not allowed, the options are:
+   * run reSID in a separate small GPL helper process the Player talks to;
+   * or swap in a SID core under a permissive licence.
+
+   C64 Dev Machine already ships sid64 the same way, so the answer covers both.
+
+---
+
 ## 1. Decisions (October 2026)
 
 | Topic | Decision | Why |
@@ -178,7 +234,9 @@ level = {
 4. **Tracker:** 6+1 voice data model, player sim, editor page, `.sid` / `.wav` export.
 5. **Editors:** texture/pixel editor (Pepto-locked), map editor (2D plan view +
    3D preview), PNG import.
-6. **Modes:** 2.5D and 2D.
+6. **Game pack + Export:** `docs/GAME_PACK.md`, the pack writer (Editor) and
+   reader (Player), Player boot, "Build game" export, licence bundle.
+7. **Modes:** 2.5D and 2D.
 
 ## 10. Self-test
 

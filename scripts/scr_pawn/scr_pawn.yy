@@ -1,9 +1,9 @@
 {
   "$GMScript":"v1",
-  "%Name":"scr_player",
+  "%Name":"scr_pawn",
   "isCompatibility":false,
   "isDnD":false,
-  "name":"scr_player",
+  "name":"scr_pawn",
   "parent":{
     "name":"Engine",
     "path":"folders/Engine.yy",

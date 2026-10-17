@@ -22,7 +22,7 @@ pl_pitch = 0;
 pl_sector = -1;
 pl_noclip = false;
 mouse_captured = false;
-player_spawn(level);
+pawn_spawn(level);
 
 // --- Rendering ---
 rt_world = -1;
@@ -53,5 +53,6 @@ display_set_gui_size(gui_w, gui_h);
 shot_path = "";
 autoshot_setup();
 
-show_debug_message("NOTtheC64GameEngine: " + string(array_length(level.sectors)) + " sectors, "
+window_set_caption("NOTtheC64GameEngine " + build_program_name() + " " + NTC64_VERSION);
+show_debug_message("NOTtheC64GameEngine " + build_program_name() + ": " + string(array_length(level.sectors)) + " sectors, "
     + string(world_baked.tris) + " tris in " + string(array_length(world_baked.batches)) + " batches");
