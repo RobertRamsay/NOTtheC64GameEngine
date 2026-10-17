@@ -207,6 +207,14 @@ level = {
 * Widened from 3 to **6 voices + 1 sample lane**.
 * Screen layout ideas from ADAM's Music page (song timeline, loop library,
   step editor).
+* **Two views of one song** (Bob, October 2026): the horizontal bar tracker
+  (time runs left to right, one lane per voice) and a classic **vertical
+  row-based tracker** (OctaMED / ProTracker / GoatTracker style: rows run down,
+  one column per voice + the sample lane, note / instrument / effect cells).
+  Both edit the **same** data model (patterns, order lists, instruments), so
+  either view can be used at any time and switching never converts anything.
+  Build the horizontal view first; the vertical view is a second editor over the
+  same model, not a separate format. The Player only sees the song data.
 * Exports: `.sid` (2SID PSID v3, second chip at $D420/$D500), `.wav`; game
   runtime plays the song data directly.
 * Sound effects: the same voices, stolen per channel with priorities (classic C64
