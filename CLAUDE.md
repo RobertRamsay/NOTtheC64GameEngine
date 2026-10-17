@@ -47,6 +47,9 @@ true / false (`scr_build`).
 | Resource | Role |
 |---|---|
 | `objects/obj_engine` | The only object. Create = all state, Step = input + player, Draw = 3D into `rt_world` + lock pass, Draw GUI = present + debug text, CleanUp = free everything. |
+| `scripts/scr_ui` | Immediate-mode UI kit (Draw GUI): button, toggle, slider, choice, tabs; C64-blue Pepto style, scales with the window. The Editor grows on it. |
+| `scripts/scr_menu` | Options menu (Esc or the MENU button, pauses the game): GAME (resume, restart, Editor, quit), DISPLAY (fullscreen, window size, dither), CRT (scanlines off / progressive / interlaced, blur, curvature ...). |
+| `scripts/scr_settings` | settings.ini: fullscreen, window size, dither, every CRT value. |
 | `scripts/scr_build` | `NTC64_EDITOR` (per build config), `NTC64_VERSION`, `NTC64_PACK_VERSION`. |
 | `scripts/scr_pepto` | Pepto palette: `pepto_colour`, `pepto_nearest`, `pepto_uniform_array`, `pepto_is_exact`. |
 | `scripts/scr_tex` | Index-image textures (<= 16 x 16) -> GameMaker sprites; procedural test set. |
@@ -70,4 +73,4 @@ true / false (`scr_build`).
 WASD move, mouse look (click to capture, Tab / Esc to release), E use, Ctrl (or click
 while captured) shoot, Space jump (Space / C fly up / down in noclip), N noclip, F2 palette/texture
 strip, F5 dither, F6 CRT, F7 palette lock on/off (debug only), F8 portal culling on/off,
-F9 audio test (dual SID + PCM), F1 debug text.
+F9 audio test (dual SID + PCM), F11 fullscreen, Esc Options menu, F1 debug text.

@@ -55,6 +55,29 @@ fx = postfx_defaults();
 fx_u = postfx_uniforms();
 fx_crt_on = true;
 
+// --- UI kit (scr_ui) and Options menu (scr_menu) ---
+ui_s = 1;
+ui_mx = 0;
+ui_my = 0;
+ui_pressed = false;
+ui_down = false;
+ui_active = "";
+ui_used = false;
+menu_open = false;
+menu_tab = MENU_TAB_GAME;
+menu_crt_defs = postfx_slider_defs();
+
+// --- Settings (scr_settings): defaults, then settings.ini over them ---
+set_fullscreen = false;
+set_win_scale = 4;          // 320 x 200 x 4 = 1280 x 800
+settings_dirty = false;
+if (environment_get_variable("NTC64_AUTOSHOT") == "")
+{
+    // (the self-test always runs on the defaults)
+    settings_load();
+    settings_apply_window();
+}
+
 // The game image never goes through application_surface; keep it tiny.
 application_surface_draw_enable(false);
 surface_resize(application_surface, RENDER_W, RENDER_H);
@@ -93,6 +116,13 @@ shot_walk = [];
 shot_walk_i = 0;
 shot_walk_left = 0;
 autoshot_setup();
+var _menu_tab = environment_get_variable("NTC64_AUTOSHOT_MENU");
+if (shot_path != "" && _menu_tab != "")
+{
+    // build.ps1 -Menu <tab>: open the Options menu for the screenshot
+    menu_open = true;
+    menu_tab = clamp(real(_menu_tab), MENU_TAB_GAME, MENU_TAB_CRT);
+}
 if (shot_path != "")
 {
     // exercise the live stream too; autoshot_tick reports it and renders the test offline

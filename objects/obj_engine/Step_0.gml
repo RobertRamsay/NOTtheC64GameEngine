@@ -43,6 +43,7 @@ if (keyboard_check_pressed(vk_f5))
     {
         dither = 1;
     }
+    settings_save();
 }
 if (keyboard_check_pressed(vk_f6))
 {
@@ -54,6 +55,11 @@ if (keyboard_check_pressed(vk_f6))
     {
         fx_crt_on = true;
     }
+    settings_save();
+}
+if (keyboard_check_pressed(vk_f11))
+{
+    settings_toggle_fullscreen();
 }
 if (keyboard_check_pressed(vk_f7))
 {
@@ -84,17 +90,27 @@ if (keyboard_check_pressed(vk_f9))
     audio_test_toggle();
 }
 
+// Esc / the MENU button open the Options menu; the game pauses under it
+var _paused = false;
 if (shot_path == "")
 {
-    pawn_update(world);
-}
-else
-{
-    // Self-test: -Use presses use once, -Walk drives the pawn from a script
-    autoshot_step();
+    _paused = menu_step();
 }
 
-// Doors, lifts, crushers...
-world_tick(world, pl_x, pl_y, pl_z, !pl_noclip);
+if (!_paused)
+{
+    if (shot_path == "")
+    {
+        pawn_update(world);
+    }
+    else
+    {
+        // Self-test: -Use presses use once, -Walk drives the pawn from a script
+        autoshot_step();
+    }
+
+    // Doors, lifts, crushers...
+    world_tick(world, pl_x, pl_y, pl_z, !pl_noclip);
+}
 
 audio_stream_step();

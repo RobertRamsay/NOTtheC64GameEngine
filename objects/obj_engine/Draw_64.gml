@@ -54,7 +54,7 @@ if (show_debug)
             + "  groups " + string(world.vis_groups) + "/" + string(array_length(world.groups)) + "  movers " + string(array_length(world.movers)),
         "last action: " + world.last_event,
         "F5 dither " + _dith + "   F6 CRT " + _crt + "   F7 Pepto lock " + _lock + "   F8 portal culling " + _vis + "   N noclip   F1 hide",
-        "Click to capture mouse, Tab/Esc to release. WASD + Shift, Space jump (Space/C fly in noclip). E use, Ctrl (or click when captured) shoot.",
+        "Click to capture mouse, Tab to release, Esc menu, F11 fullscreen. WASD + Shift, Space jump (Space/C fly in noclip). E use, Ctrl (or click when captured) shoot.",
         _aud
     ];
 
@@ -69,4 +69,14 @@ if (show_debug)
         draw_text(8, 8 + _i * 16, _lines[_i]);
     }
     draw_set_colour(c_white);
+}
+
+// --- Options menu (scr_menu) on top of everything ---
+ui_frame_begin();
+menu_draw();
+
+// Self-test of the menu itself (build.ps1 -Menu <tab>): save the whole window
+if (shot_path != "" && menu_open && frame_no == shot_frame - 1)
+{
+    screen_save(shot_path + "_gui.png");
 }

@@ -8,8 +8,9 @@
 #        [-Walk "f36,t-90,f70,e,w70,f200,p"]          walk the pawn with collision (commands in scr_render autoshot_step)
 #        [-NoVis]                                    portal culling off (the shot must not change)
 #   powershell -File tools\build.ps1 -SaveLevel datafiles\levels\test.json   write the built-in test level as JSON and quit
+#        [-Menu 0|1|2]                               open the Options menu on a tab; also saves <shot>_gui.png
 #   -Config Player                                   build the Player (shipped runtime) instead of the Editor
-param([switch]$Run, [string]$Shot = "", [string]$Pose = "", [string]$Config = "Default", [int]$Frames = 0, [switch]$Use, [string]$Walk = "", [switch]$NoVis, [string]$SaveLevel = "")
+param([switch]$Run, [string]$Shot = "", [string]$Pose = "", [string]$Config = "Default", [int]$Frames = 0, [switch]$Use, [string]$Walk = "", [switch]$NoVis, [string]$SaveLevel = "", [string]$Menu = "")
 $repo = Split-Path -Parent $PSScriptRoot
 $rt = (Get-ChildItem "C:\ProgramData\GameMakerStudio2-LTS2026\Cache\runtimes" -Directory | Sort-Object Name | Select-Object -Last 1).FullName
 $user = (Get-ChildItem "$env:APPDATA\GameMakerStudio2-LTS2026" -Directory | Where-Object { $_.Name -match "_\d+$" } | Select-Object -First 1).FullName
@@ -47,6 +48,8 @@ if ($Use) { $env:NTC64_AUTOSHOT_USE = "1" }
 $env:NTC64_AUTOSHOT_WALK = $Walk
 $env:NTC64_AUTOSHOT_NOVIS = ""
 if ($NoVis) { $env:NTC64_AUTOSHOT_NOVIS = "1" }
+# -Menu 0|1|2: open the Options menu on that tab (GAME / DISPLAY / CRT) and save the window as <shot>_gui.png
+$env:NTC64_AUTOSHOT_MENU = $Menu
 $env:NTC64_SAVE_LEVEL = ""
 if ($SaveLevel -ne "") { $env:NTC64_SAVE_LEVEL = [IO.Path]::GetFullPath($SaveLevel) }
 

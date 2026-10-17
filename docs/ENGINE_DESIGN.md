@@ -99,8 +99,21 @@ consequences to settle before the first public release:
              editor UI / debug text on top (not part of the game image)
 ```
 
-* **Internal resolution** defaults to **320 x 200** (Doom's and the C64's). It is a
-  macro (`RENDER_W`, `RENDER_H`); 384 x 272 (full PAL border) or 640 x 400 work too.
+* **Internal resolution** is **320 x 200** (Doom's and the C64's). It is a
+  macro (`RENDER_W`, `RENDER_H`), and Bob is happy with 320 x 200. 640 x 400 is the
+  most it should ever be, if a game pack setting for it is added later.
+* **The window is free:** windowed at x1..x6 (640 x 400, 1280 x 800 ...),
+  drag to any size, or fullscreen (F11). The image is always letterboxed and
+  scaled up, so the pixels stay big.
+* **Options menu** (Esc or the MENU button; `scr_menu`, in both Editor and
+  Player). It pauses the game and has three tabs:
+  * **Game:** resume, restart, Editor, quit.
+  * **Display:** fullscreen, window size, the Pepto dither amount.
+  * **CRT:** scanlines off / progressive / interlaced, then scanline depth,
+    composite blur, curvature, mask, colour fringe, glow, vignette, flicker,
+    brightness / contrast / saturation.
+
+  Settings are saved per machine in `settings.ini` (`scr_settings`).
 * The game image is never drawn through `application_surface` (auto-draw is off);
   it is shrunk to the render size so it costs nothing.
 * **Lighting** is computed in full colour (sector light 0..1, distance falloff

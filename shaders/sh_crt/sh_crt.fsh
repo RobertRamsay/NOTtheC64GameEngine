@@ -22,6 +22,10 @@ uniform float u_bright;
 uniform float u_contrast;
 uniform float u_sat;
 uniform float u_flicker;
+uniform vec2  u_src_texel;   // 1.0 / source image size (the 320 x 200 game image)
+uniform float u_blur;        // composite smear, in source pixels (0 = sharp)
+uniform float u_interlace;   // 1 = interlaced scanlines (the dark gaps swap every field)
+uniform float u_field;       // 0 / 1, flips every frame
 
 const float TAU = 6.28318530718;
 
@@ -67,6 +71,15 @@ void main()
     col.g = texture2D(gm_BaseTexture, uv).g;
     col.b = texture2D(gm_BaseTexture, uv - dir * ca).b;
 
+    // --- Composite blur: a horizontal smear, like a C64 on a TV ---
+    if (u_blur > 0.0)
+    {
+        vec2 d = vec2(u_src_texel.x * u_blur, 0.0);
+        vec3 l = texture2D(gm_BaseTexture, uv - d).rgb;
+        vec3 r = texture2D(gm_BaseTexture, uv + d).rgb;
+        col = (l + col * 2.0 + r) * 0.25;
+    }
+
     // --- Phosphor bloom: only the bright parts spill ---
     if (u_glow > 0.0)
     {
@@ -74,9 +87,10 @@ void main()
         col += max(g - vec3(0.25), vec3(0.0)) * u_glow;
     }
 
-    // --- Scanlines ---
+    // --- Scanlines (interlaced: odd and even fields put the gap half a line apart) ---
     float lines = max(u_scan_lines, 1.0);
-    float sl = 0.55 + 0.45 * cos(uv.y * lines * TAU);
+    float phase = u_interlace * u_field * 0.5;
+    float sl = 0.55 + 0.45 * cos((uv.y * lines + phase) * TAU);
     col *= mix(1.0, sl, clamp(u_scan, 0.0, 1.0));
 
     // --- Aperture grille: three-pixel RGB triad ---

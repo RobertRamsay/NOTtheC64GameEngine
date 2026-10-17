@@ -369,7 +369,8 @@ function pawn_update(_w)
         window_mouse_set_locked(true);
         _clicked = false;
     }
-    if (mouse_captured && (keyboard_check_pressed(vk_escape) || keyboard_check_pressed(vk_tab)))
+    // (Esc opens the Options menu, which also frees the mouse: scr_menu)
+    if (mouse_captured && keyboard_check_pressed(vk_tab))
     {
         mouse_captured = false;
         window_mouse_set_locked(false);
