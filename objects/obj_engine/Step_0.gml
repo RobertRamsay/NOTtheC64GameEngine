@@ -67,7 +67,27 @@ if (keyboard_check_pressed(vk_f7))
     }
 }
 
+if (keyboard_check_pressed(vk_f8))
+{
+    if (world.vis_on)
+    {
+        world.vis_on = false;
+    }
+    else
+    {
+        world.vis_on = true;
+    }
+}
+
 if (shot_path == "")
 {
-    pawn_update(level);
+    pawn_update(world);
 }
+else
+{
+    // Self-test: -Use presses use once, -Walk drives the pawn from a script
+    autoshot_step();
+}
+
+// Doors, lifts, crushers...
+world_tick(world, pl_x, pl_y, pl_z, !pl_noclip);

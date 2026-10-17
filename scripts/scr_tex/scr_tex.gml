@@ -232,8 +232,84 @@ function tex_gen_noise(_a0, _a1, _a2, _seed)
     return _a;
 }
 
+/// @desc 16x16 door: vertical planks in a frame with a cross bar.
+function tex_gen_door(_frame, _plank, _gap, _bar)
+{
+    var _a = array_create(256, _plank);
+    for (var _ty = 0; _ty < 16; _ty++)
+    {
+        for (var _tx = 0; _tx < 16; _tx++)
+        {
+            var _k = _plank;
+            if (_tx == 0 || _tx == 15 || _ty == 0 || _ty == 15)
+            {
+                _k = _frame;
+            }
+            else if (_ty == 7 || _ty == 8)
+            {
+                _k = _bar;
+            }
+            else if (_tx mod 4 == 0)
+            {
+                _k = _gap;
+            }
+            _a[_ty * 16 + _tx] = _k;
+        }
+    }
+    return _a;
+}
+
+/// @desc 16x16 grate: bars every 4 pixels, transparent between them.
+function tex_gen_grate(_bar, _shade)
+{
+    var _a = array_create(256, PEPTO_CLEAR);
+    for (var _ty = 0; _ty < 16; _ty++)
+    {
+        for (var _tx = 0; _tx < 16; _tx++)
+        {
+            if (_tx mod 4 == 0)
+            {
+                _a[_ty * 16 + _tx] = _bar;
+            }
+            else if (_ty mod 4 == 0)
+            {
+                _a[_ty * 16 + _tx] = _shade;
+            }
+        }
+    }
+    return _a;
+}
+
+/// @desc 16x16 shooting target: rings on a plain background.
+function tex_gen_target(_back, _ring_a, _ring_b)
+{
+    var _a = array_create(256, _back);
+    for (var _ty = 0; _ty < 16; _ty++)
+    {
+        for (var _tx = 0; _tx < 16; _tx++)
+        {
+            var _d = point_distance(_tx, _ty, 7.5, 7.5);
+            if (_d < 7)
+            {
+                if (floor(_d / 2) mod 2 == 0)
+                {
+                    _a[_ty * 16 + _tx] = _ring_a;
+                }
+                else
+                {
+                    _a[_ty * 16 + _tx] = _ring_b;
+                }
+            }
+        }
+    }
+    return _a;
+}
+
 function tex_make_test_set()
 {
+    tex_create("DOOR", 16, 16, tex_gen_door(PEPTO_DARK_GREY, PEPTO_ORANGE, PEPTO_BROWN, PEPTO_LIGHT_GREY), true);
+    tex_create("GRATE", 16, 16, tex_gen_grate(PEPTO_LIGHT_GREY, PEPTO_MID_GREY), true);
+    tex_create("TARGET", 16, 16, tex_gen_target(PEPTO_DARK_GREY, PEPTO_RED, PEPTO_WHITE), true);
     tex_create("BRICK", 16, 16, tex_gen_bricks(PEPTO_DARK_GREY, PEPTO_RED, PEPTO_LIGHT_RED, PEPTO_BROWN, 3), true);
     tex_create("STONE", 16, 16, tex_gen_bricks(PEPTO_DARK_GREY, PEPTO_MID_GREY, PEPTO_LIGHT_GREY, PEPTO_DARK_GREY, 7), true);
     tex_create("SLAB", 16, 16, tex_gen_slabs(PEPTO_MID_GREY, PEPTO_LIGHT_GREY, PEPTO_DARK_GREY, 5), true);

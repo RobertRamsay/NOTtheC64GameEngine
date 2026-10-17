@@ -31,12 +31,20 @@ if (show_debug)
         _nc = "  NOCLIP";
     }
 
+    var _vis = "on";
+    if (!world.vis_on)
+    {
+        _vis = "off";
+    }
+
     var _lines = [
         "NOTtheC64GameEngine  " + string(RENDER_W) + "x" + string(RENDER_H) + "  " + string(fps) + " fps (" + string(round(fps_real)) + " uncapped)",
         "pos " + string(round(pl_x)) + ", " + string(round(pl_y)) + ", " + string(round(pl_z)) + "  yaw " + string(round(pl_yaw)) + "  pitch " + string(round(pl_pitch)) + "  sector " + _sec + _nc,
-        "tris " + string(world_baked.tris) + "  batches " + string(array_length(world_baked.batches)),
-        "F5 dither " + _dith + "   F6 CRT " + _crt + "   F7 Pepto lock " + _lock + "   N noclip   F1 hide",
-        "Click to capture mouse, Tab/Esc to release. WASD + Shift, Space/C fly in noclip."
+        "tris " + string(world.tris) + "  batches " + string(world.nbatches) + " (" + string(world.drawn) + " drawn)  visible sectors " + string(world.vis_count) + "/" + string(world.nsec)
+            + "  groups " + string(world.vis_groups) + "/" + string(array_length(world.groups)) + "  movers " + string(array_length(world.movers)),
+        "last action: " + world.last_event,
+        "F5 dither " + _dith + "   F6 CRT " + _crt + "   F7 Pepto lock " + _lock + "   F8 portal culling " + _vis + "   N noclip   F1 hide",
+        "Click to capture mouse, Tab/Esc to release. WASD + Shift, Space/C fly in noclip. E use, Ctrl (or click when captured) shoot."
     ];
 
     draw_set_font(-1);

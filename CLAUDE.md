@@ -50,16 +50,22 @@ true / false (`scr_build`).
 | `scripts/scr_build` | `NTC64_EDITOR` (per build config), `NTC64_VERSION`, `NTC64_PACK_VERSION`. |
 | `scripts/scr_pepto` | Pepto palette: `pepto_colour`, `pepto_nearest`, `pepto_uniform_array`, `pepto_is_exact`. |
 | `scripts/scr_tex` | Index-image textures (<= 16 x 16) -> GameMaker sprites; procedural test set. |
-| `scripts/scr_world` | Sector level model, test level, vertex-buffer baking per texture, sector lookup. |
-| `scripts/scr_pawn` | The first-person character ("pawn", so it is never confused with the Player program): camera, movement with step-up / headroom sector collision. |
+| `scripts/scr_level` | Level JSON v1: defaults, `level_load` / `level_save`, a small polygon builder (`lb_*`), `world_test_level()`. |
+| `scripts/scr_world` | Bake a level into the runtime world: sector loops from edges, slope planes, frozen buffers per sector group and texture, moving-plane buffers, blockmap; sector / height / edge queries. |
+| `scripts/scr_tri` | Ear clipping with holes, for floors and ceilings. |
+| `scripts/scr_mover` | Doors, lifts, crushers, floor / ceiling movers; edge actions (use / walk / shoot) on tags. |
+| `scripts/scr_vis` | Portal visibility flood with screen-rect clipping. |
+| `scripts/scr_pawn` | The first-person character ("pawn", so it is never confused with the Player program): camera, circle-vs-edge collision with sliding, use and shoot traces. |
+| `datafiles/levels` | Level JSON included with the game (`test.json`, written by `build.ps1 -SaveLevel`). |
 | `scripts/scr_render` | Render targets, world pass, palette-lock pass, present (+ CRT), auto-screenshot. |
 | `scripts/scr_postfx` | CRT parameters and uniforms (from PiX3LL3D `POSTFX_system`). |
 | `shaders/sh_world` | Texture x light x distance falloff, alpha test. |
 | `shaders/sh_pepto_lock` | Nearest Pepto colour + 4x4 Bayer dither between the two nearest. |
 | `shaders/sh_crt` | PiX3LL3D CRT pass. |
 
-## Keys (skeleton)
+## Keys
 
-WASD move, mouse look (click to capture, Tab / Esc to release), Space / C fly up / down
-in noclip, N noclip, F2 palette/texture strip, F5 dither, F6 CRT, F7 palette lock on/off
-(debug only), F1 debug text.
+WASD move, mouse look (click to capture, Tab / Esc to release), E use, Ctrl (or click
+while captured) shoot, Space / C fly up / down in noclip, N noclip, F2 palette/texture
+strip, F5 dither, F6 CRT, F7 palette lock on/off (debug only), F8 portal culling on/off,
+F1 debug text.
