@@ -7,4 +7,5 @@ if (mouse_captured)
 world_free(world_baked);
 tex_free_all();
 render_free();
+audio_free();
 vertex_format_delete(global.WORLD_VFORMAT);

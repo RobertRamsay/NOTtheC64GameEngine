@@ -31,12 +31,23 @@ if (show_debug)
         _nc = "  NOCLIP";
     }
 
+    var _aud = "F9 audio test   sid64 missing";
+    if (aud_ok)
+    {
+        _aud = "F9 audio test   stopped";
+        if (aud_playing)
+        {
+            _aud = "F9 audio test   playing, " + string(audio_stream_ahead_ms()) + " ms queued";
+        }
+    }
+
     var _lines = [
         "NOTtheC64GameEngine  " + string(RENDER_W) + "x" + string(RENDER_H) + "  " + string(fps) + " fps (" + string(round(fps_real)) + " uncapped)",
         "pos " + string(round(pl_x)) + ", " + string(round(pl_y)) + ", " + string(round(pl_z)) + "  yaw " + string(round(pl_yaw)) + "  pitch " + string(round(pl_pitch)) + "  sector " + _sec + _nc,
         "tris " + string(world_baked.tris) + "  batches " + string(array_length(world_baked.batches)),
         "F5 dither " + _dith + "   F6 CRT " + _crt + "   F7 Pepto lock " + _lock + "   N noclip   F1 hide",
-        "Click to capture mouse, Tab/Esc to release. WASD + Shift, Space/C fly in noclip."
+        "Click to capture mouse, Tab/Esc to release. WASD + Shift, Space/C fly in noclip.",
+        _aud
     ];
 
     draw_set_font(-1);

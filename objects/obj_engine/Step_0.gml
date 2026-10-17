@@ -67,7 +67,14 @@ if (keyboard_check_pressed(vk_f7))
     }
 }
 
+if (keyboard_check_pressed(vk_f9))
+{
+    // debug hook: dual-SID + PCM test (scr_audio)
+    audio_test_toggle();
+}
+
 if (shot_path == "")
 {
     pawn_update(level);
 }
+audio_stream_step();

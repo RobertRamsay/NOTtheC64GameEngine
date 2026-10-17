@@ -54,6 +54,8 @@ true / false (`scr_build`).
 | `scripts/scr_pawn` | The first-person character ("pawn", so it is never confused with the Player program): camera, movement with step-up / headroom sector collision. |
 | `scripts/scr_render` | Render targets, world pass, palette-lock pass, present (+ CRT), auto-screenshot. |
 | `scripts/scr_postfx` | CRT parameters and uniforms (from PiX3LL3D `POSTFX_system`). |
+| `scripts/scr_audio` | Audio core (engine, ships in the Player): dual-SID + PCM stream through one play queue, F9 test, `-Shot` audio self-test. |
+| `extensions/sid64` | reSID DLL (GPL v2). Source + build line in `tools/sid64` (built with `tools/zig`, Zig 0.13.0, git-ignored). |
 | `shaders/sh_world` | Texture x light x distance falloff, alpha test. |
 | `shaders/sh_pepto_lock` | Nearest Pepto colour + 4x4 Bayer dither between the two nearest. |
 | `shaders/sh_crt` | PiX3LL3D CRT pass. |
@@ -61,5 +63,5 @@ true / false (`scr_build`).
 ## Keys (skeleton)
 
 WASD move, mouse look (click to capture, Tab / Esc to release), Space / C fly up / down
-in noclip, N noclip, F2 palette/texture strip, F5 dither, F6 CRT, F7 palette lock on/off
+in noclip, N noclip, F2 palette/texture strip, F5 dither, F6 CRT, F9 audio test (dual SID + PCM), F7 palette lock on/off
 (debug only), F1 debug text.

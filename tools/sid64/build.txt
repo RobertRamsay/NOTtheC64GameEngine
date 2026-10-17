@@ -1,0 +1,22 @@
+sid64 - reSID wrapper (forked from C64 Dev Machine for NOTtheC64GameEngine; version 4 adds
+sid64_dual_config / sid64_render_dual, the sid64_pcm_* channel and the sid64_settle fix)
+
+NOTtheC64GameEngine build (Zig 0.13.0 in tools/zig, from ziglang.org, git-ignored), from tools/sid64 in Git Bash:
+  ../zig/zig.exe c++ -target x86_64-windows-gnu -O2 -w -shared -static -std=c++11 -D_USE_MATH_DEFINES -o sid64.dll sid64.cpp $(ls resid/*.cpp resid-fp/*.cpp | grep -v version)
+  then copy sid64.dll to extensions/sid64/ (delete the sid64.lib / sid64.pdb it also writes).
+
+Original notes from C64 Dev Machine:
+
+Windows (already built: sid64.dll, x64, static runtime, no extra DLLs needed):
+  x86_64-w64-mingw32-g++ -O3 -fpermissive -w -shared -static -static-libgcc -static-libstdc++ -o sid64.dll sid64.cpp resid/*.cpp resid-fp/*.cpp
+
+macOS (run on the Mac, universal):
+  clang++ -O3 -fpermissive -w -dynamiclib -arch x86_64 -arch arm64 -o libsid64.dylib sid64.cpp resid/[!v]*.cpp resid/voice.cpp resid-fp/[!v]*.cpp resid-fp/voicefp.cpp
+
+Exclude resid/version.cpp and resid-fp/versionfp.cpp if the linker reports duplicates.
+reSID / reSID-fp are GPL v2 (see COPYING).
+
+Version 3 provides nine independent slots: slot 0 for auditions and slots 1-8 for song playback.
+Windows DLL can also be built with Zig 0.13.0 c++ using:
+  zig c++ -target x86_64-windows-gnu -O2 -w -shared -static -std=c++11 -D_USE_MATH_DEFINES -o sid64.dll sid64.cpp <resid and resid-fp .cpp files, excluding version.cpp and versionfp.cpp>
+Rebuild the GameMaker game after replacing the extension DLL.

@@ -27,6 +27,7 @@
   "resources":[
     {"id":{"name":"obj_engine","path":"objects/obj_engine/obj_engine.yy",},},
     {"id":{"name":"rm_main","path":"rooms/rm_main/rm_main.yy",},},
+    {"id":{"name":"scr_audio","path":"scripts/scr_audio/scr_audio.yy",},},
     {"id":{"name":"scr_build","path":"scripts/scr_build/scr_build.yy",},},
     {"id":{"name":"scr_pepto","path":"scripts/scr_pepto/scr_pepto.yy",},},
     {"id":{"name":"scr_pawn","path":"scripts/scr_pawn/scr_pawn.yy",},},
@@ -34,6 +35,7 @@
     {"id":{"name":"scr_render","path":"scripts/scr_render/scr_render.yy",},},
     {"id":{"name":"scr_tex","path":"scripts/scr_tex/scr_tex.yy",},},
     {"id":{"name":"scr_world","path":"scripts/scr_world/scr_world.yy",},},
+    {"id":{"name":"sid64","path":"extensions/sid64/sid64.yy",},},
     {"id":{"name":"sh_crt","path":"shaders/sh_crt/sh_crt.yy",},},
     {"id":{"name":"sh_pepto_lock","path":"shaders/sh_pepto_lock/sh_pepto_lock.yy",},},
     {"id":{"name":"sh_world","path":"shaders/sh_world/sh_world.yy",},},

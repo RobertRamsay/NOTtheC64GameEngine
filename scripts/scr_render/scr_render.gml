@@ -255,5 +255,6 @@ function autoshot_tick()
     {
         show_debug_message("AUTOSHOT " + shot_path + " FAIL - " + string(_bad) + " pixels are not Pepto");
     }
+    audio_selftest(shot_path + "_audio.wav");
     game_end();
 }

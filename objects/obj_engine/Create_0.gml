@@ -49,9 +49,37 @@ gui_w = window_get_width();
 gui_h = window_get_height();
 display_set_gui_size(gui_w, gui_h);
 
+// --- Audio (scr_audio) ---
+aud_ok = false;
+aud_stereo = true;
+aud_model_a = 0;          // chip A (left): 0 = 6581, 1 = 8580
+aud_model_b = 1;          // chip B (right)
+aud_engine = 0;           // 0 = reSID, 1 = reSID-fp
+aud_gain = 1.0;
+aud_cap = 0;
+aud_log_a = -1;
+aud_log_b = -1;
+aud_queue = -1;
+aud_inst = -1;
+aud_playing = false;
+aud_bufs = [];
+aud_dead = [];
+aud_src = -1;
+aud_src_done = false;
+aud_frames_queued = 0;
+aud_t0 = 0;
+aud_played = 0;
+aud_test_pcm = -1;
+audio_init();
+
 // --- Self-test ---
 shot_path = "";
 autoshot_setup();
+if (shot_path != "")
+{
+    // exercise the live stream too; autoshot_tick reports it and renders the test offline
+    audio_test_toggle();
+}
 
 window_set_caption("NOTtheC64GameEngine " + build_program_name() + " " + NTC64_VERSION);
 show_debug_message("NOTtheC64GameEngine " + build_program_name() + ": " + string(array_length(level.sectors)) + " sectors, "

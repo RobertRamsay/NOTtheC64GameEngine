@@ -6,3 +6,4 @@
 /cache/
 *.yydebug
 .claude/settings.local.json
+/tools/zig/
