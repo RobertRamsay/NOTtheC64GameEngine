@@ -1,0 +1,8 @@
+﻿# GameMaker
+*.resource_order.bak
+*.old
+/tmp/
+/output/
+/cache/
+*.yydebug
+.claude/settings.local.json

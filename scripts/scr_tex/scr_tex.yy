@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"scr_tex",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"scr_tex",
+  "parent":{
+    "name":"Engine",
+    "path":"folders/Engine.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

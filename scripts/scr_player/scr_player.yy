@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"scr_player",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"scr_player",
+  "parent":{
+    "name":"Engine",
+    "path":"folders/Engine.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

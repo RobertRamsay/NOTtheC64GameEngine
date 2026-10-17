@@ -1,0 +1,57 @@
+/// obj_engine - Create. Every instance variable is initialised here.
+
+// --- Palette and textures ---
+pepto_init();
+pepto_u_array = pepto_uniform_array();
+tex_init();
+tex_make_test_set();
+
+// --- World ---
+world_init();
+level = world_test_level();
+world_baked = world_bake(level);
+
+// --- Player ---
+pl_x = 0;
+pl_y = 0;
+pl_z = 0;
+pl_vz = 0;
+pl_view_z = 0;
+pl_yaw = 0;
+pl_pitch = 0;
+pl_sector = -1;
+pl_noclip = false;
+mouse_captured = false;
+player_spawn(level);
+
+// --- Rendering ---
+rt_world = -1;
+rt_locked = -1;
+cam = camera_create();
+rw_u = {};
+lock_u = {};
+render_uniforms();
+lock_on = true;
+dither = 1.0;
+show_debug = true;
+show_swatches = false;
+frame_no = 0;
+
+// --- Post FX ---
+fx = postfx_defaults();
+fx_u = postfx_uniforms();
+fx_crt_on = true;
+
+// The game image never goes through application_surface; keep it tiny.
+application_surface_draw_enable(false);
+surface_resize(application_surface, RENDER_W, RENDER_H);
+gui_w = window_get_width();
+gui_h = window_get_height();
+display_set_gui_size(gui_w, gui_h);
+
+// --- Self-test ---
+shot_path = "";
+autoshot_setup();
+
+show_debug_message("NOTtheC64GameEngine: " + string(array_length(level.sectors)) + " sectors, "
+    + string(world_baked.tris) + " tris in " + string(array_length(world_baked.batches)) + " batches");

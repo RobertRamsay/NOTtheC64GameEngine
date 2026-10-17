@@ -1,0 +1,12 @@
+{
+  "$GMShader":"",
+  "%Name":"sh_pepto_lock",
+  "name":"sh_pepto_lock",
+  "parent":{
+    "name":"Shaders",
+    "path":"folders/Shaders.yy",
+  },
+  "resourceType":"GMShader",
+  "resourceVersion":"2.0",
+  "type":1,
+}
