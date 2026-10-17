@@ -5,6 +5,9 @@ GameMaker (GML) by Bob / Polytricity Ltd. The only limits: **every pixel is one
 of the 16 Pepto C64 colours** and **every texture / tile / sprite frame is at most
 16 x 16**. It has a built-in **dual-SID tracker** (6 reSID voices + one ~11 kHz
 PCM channel). The full design is in `docs/ENGINE_DESIGN.md`; read it first.
+The Level Editor, enemies / things and the Creature Modeler (rigged,
+pre-animated template creatures with mesh, bone and curve editing) are specified
+in `docs/CONTENT_TOOLS.md`.
 
 Sibling projects we borrow from (read-only, never edit them from here):
 `D:\POLYTRICITY\PROJECTS\PIXELL3D\CORE\PIX3LL3D` (CRT, editor pieces),

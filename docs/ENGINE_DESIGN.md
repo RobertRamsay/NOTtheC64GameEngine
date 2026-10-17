@@ -166,8 +166,12 @@ level = {
   `tileset_import` does the slicing).
 * The pixel editor comes from PiX3LL3D's `PIXEL_editor` with DB32 swapped for the
   16 Pepto colours and painting locked to indices.
-* Entities (monsters, pickups) are camera-facing **billboards** with 1/8/16
-  directions of <= 16 x 16 frames — Doom style, drawn into `rt_world` before the lock.
+* **Creatures and enemies are low-poly 3D models**, rigged and animated, built in
+  the Creature Modeler (`docs/CONTENT_TOOLS.md` §C). Their faces are flat Pepto
+  colours or <= 16 x 16 textures. A 16 x 16 sprite is too small to be a monster
+  at 320 x 200, but a model has no size limit.
+* Small things (pickups, effects, decorations) can be camera-facing **billboards**:
+  1/8/16 directions of <= 16 x 16 frames, drawn into `rt_world` before the lock.
 
 ## 6. Modes
 
@@ -224,19 +228,38 @@ level = {
 
 ## 9. Milestones
 
-1. **Skeleton** (this commit): project, Pepto palette, render pipeline, palette
-   lock + dither, CRT, a walkable test level of convex sectors, auto-screenshot
-   self-test.
-2. **Audio core:** sid64 fork with dual mix + PCM, play-queue streaming, play a
-   test register log / imported `.sid`.
-3. **World:** ear-clipping, level JSON load/save, radius collision and sliding,
-   doors / lifts, portal visibility, billboards, things.
-4. **Tracker:** 6+1 voice data model, player sim, editor page, `.sid` / `.wav` export.
-5. **Editors:** texture/pixel editor (Pepto-locked), map editor (2D plan view +
-   3D preview), PNG import.
-6. **Game pack + Export:** `docs/GAME_PACK.md`, the pack writer (Editor) and
-   reader (Player), Player boot, "Build game" export, licence bundle.
-7. **Modes:** 2.5D and 2D.
+The content tools (level editor, enemies, creature modeler) are specified in
+`docs/CONTENT_TOOLS.md`. Steps marked ‖ can run in parallel once the step
+before them is done.
+
+1. **Skeleton** ✔: project, Pepto palette, render pipeline, palette lock + dither,
+   CRT, walkable test level, auto-screenshot self-test, Editor / Player configs.
+2. **Audio core** (blocked: needs a C++ compiler, Zig 0.13 or mingw g++):
+   sid64 fork with dual mix + PCM, play-queue streaming.
+3. **World runtime:**
+   * level JSON v1 (vertices / sectors / two-sided edges / things) with load and save;
+   * ear clipping, slopes;
+   * radius collision with sliding;
+   * movers (doors, lifts, crushers), edge actions and tags;
+   * portal visibility.
+4. **Editor shell** (CONTENT_TOOLS §D): UI kit, pages, viewport widgets (camera,
+   grid, gizmos, picking), command undo, project folder.
+5. ‖ **Level Editor** (§A): plan view, 3D Build-style editing, drawing tools,
+   surfaces, specials, things placement, validation, test play.
+5. ‖ **Creature runtime + templates** (§C2, §C7): skinned mesh format, `sh_skin`,
+   clip sampling and crossfade, GML-generated template creatures. The stock
+   humanoid is the first enemy body.
+6. **Enemies runtime** (§B3): sector-graph navigation, senses, behaviour presets,
+   attacks, projectiles, damage, items, weapons.
+7. ‖ **Creature Modeler** (§C3–C6): mesh edit, paint, rig, dope sheet + curve
+   editor, events.
+7. ‖ **Enemy Editor** (§B2) and **things** (§B1 complete).
+7. ‖ **Tracker** (§7): 6+1 voice data model, player sim, editor page, `.sid` /
+   `.wav` export. Needs step 2.
+8. **Texture tools:** Pepto pixel editor, PNG import.
+9. **Game pack + Export:** `docs/GAME_PACK.md`, pack writer (Editor) and reader
+   (Player), Player boot, "Build game", licence bundle.
+10. **Modes:** 2.5D and 2D.
 
 ## 10. Self-test
 
