@@ -4,7 +4,7 @@ if (mouse_captured)
 {
     window_mouse_set_locked(false);
 }
-world_free(world_baked);
+world_free(world);
 tex_free_all();
 render_free();
 audio_free();

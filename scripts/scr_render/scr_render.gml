@@ -5,7 +5,7 @@
 ///   Draw GUI: rt_locked -> window, letterboxed, through sh_crt when it is on
 ///
 /// State on obj_engine (Create): rt_world, rt_locked, cam, rw_u, lock_u,
-/// lock_on, dither, pepto_u_array, shot_path, shot_frame, frame_no.
+/// lock_on, dither, pepto_u_array, shot_path, shot_frame, shot_use, frame_no.
 
 #macro RENDER_W 320
 #macro RENDER_H 200
@@ -47,7 +47,7 @@ function render_ensure_surfaces()
 }
 
 /// @desc Draw the 3D world into rt_world. Call in the Draw event.
-function render_world(_baked)
+function render_world(_w)
 {
     render_ensure_surfaces();
 
@@ -70,8 +70,9 @@ function render_world(_baked)
     gpu_set_alphatestref(128);
 
     shader_set(sh_world);
-    shader_set_uniform_f(rw_u.falloff, RENDER_FALLOFF);
-    world_draw(_baked);
+    shader_set_uniform_f(rw_u.falloff, _w.falloff);
+    vis_update(_w, pl_x, pl_y, pl_view_z, pl_yaw, pl_pitch, pl_z);
+    world_draw(_w);
     shader_reset();
 
     gpu_set_alphatestenable(false);
@@ -200,11 +201,111 @@ function autoshot_setup()
             pl_view_z = pl_z + PL_EYE;
         }
     }
+    // Walk script (build.ps1 -Walk): the pawn walks with collision, so no noclip
+    var _walk = environment_get_variable("NTC64_AUTOSHOT_WALK");
+    if (_walk != "")
+    {
+        shot_walk = string_split(_walk, ",", true);
+        pl_noclip = false;
+        pl_vz = 0;
+    }
     if (environment_get_variable("NTC64_AUTOSHOT_SWATCHES") != "")
     {
         show_swatches = true;
     }
+    // Optional: shoot at frame N instead of AUTOSHOT_FRAME, press use at frame 2
+    var _frames = environment_get_variable("NTC64_AUTOSHOT_FRAMES");
+    if (_frames != "")
+    {
+        shot_frame = max(3, real(_frames));
+    }
+    if (environment_get_variable("NTC64_AUTOSHOT_USE") != "")
+    {
+        shot_use = 2;
+    }
+    // Portal culling off (build.ps1 -NoVis): the same shot must come out identical
+    if (environment_get_variable("NTC64_AUTOSHOT_NOVIS") != "")
+    {
+        world.vis_on = false;
+    }
     show_debug_message("AUTOSHOT armed: " + shot_path);
+}
+
+/// @desc One Step of the self-test: the -Use press and the -Walk script.
+/// Script commands (comma separated): f<n> / b<n> forward / back n frames,
+/// l<n> / r<n> strafe, w<n> wait, t<deg> turn left, e use, s shoot,
+/// p print "WALK x, y, z sector" to the log.
+function autoshot_step()
+{
+    if (frame_no == shot_use)
+    {
+        pawn_use(world);
+    }
+    var _fwd = 0;
+    var _side = 0;
+    while (shot_walk_i < array_length(shot_walk))
+    {
+        var _cmd = string_trim(shot_walk[shot_walk_i]);
+        var _op = string_lower(string_char_at(_cmd, 1));
+        var _arg = 0;
+        if (string_length(_cmd) > 1)
+        {
+            _arg = real(string_delete(_cmd, 1, 1));
+        }
+        if (_op == "t" || _op == "e" || _op == "s" || _op == "p")
+        {
+            // Instant commands
+            if (_op == "t")
+            {
+                pl_yaw = (pl_yaw + _arg + 360) mod 360;
+            }
+            else if (_op == "e")
+            {
+                pawn_use(world);
+            }
+            else if (_op == "s")
+            {
+                pawn_shoot(world);
+            }
+            else
+            {
+                show_debug_message("WALK frame " + string(frame_no) + ": " + string_format(pl_x, 0, 1) + ", " + string_format(pl_y, 0, 1) + ", "
+                    + string_format(pl_z, 0, 1) + "  sector " + string(pl_sector) + "  " + world.last_event);
+            }
+            shot_walk_i += 1;
+            continue;
+        }
+        if (shot_walk_left <= 0)
+        {
+            shot_walk_left = max(1, _arg);
+        }
+        if (_op == "f")
+        {
+            _fwd = 1;
+        }
+        else if (_op == "b")
+        {
+            _fwd = -1;
+        }
+        else if (_op == "l")
+        {
+            _side = 1;
+        }
+        else if (_op == "r")
+        {
+            _side = -1;
+        }
+        shot_walk_left -= 1;
+        if (shot_walk_left <= 0)
+        {
+            shot_walk_i += 1;
+        }
+        break;
+    }
+    if (!pl_noclip)
+    {
+        pawn_walk(world, _fwd, _side, 0, PL_WALK);
+    }
 }
 
 /// @desc Count pixels of rt_locked that are not exactly a Pepto colour.
@@ -240,7 +341,7 @@ function autoshot_count_bad()
 /// @desc Call at the end of Draw (after render_lock): save, verify, quit.
 function autoshot_tick()
 {
-    if (shot_path == "" || frame_no != AUTOSHOT_FRAME)
+    if (shot_path == "" || frame_no != shot_frame)
     {
         return;
     }
@@ -249,7 +350,7 @@ function autoshot_tick()
     var _bad = autoshot_count_bad();
     if (_bad == 0)
     {
-        show_debug_message("AUTOSHOT " + shot_path + " ok - every pixel is Pepto (" + string(world_baked.tris) + " tris, " + string(array_length(world_baked.batches)) + " batches)");
+        show_debug_message("AUTOSHOT " + shot_path + " ok - every pixel is Pepto (" + string(world.tris) + " tris, " + string(world.drawn) + " of " + string(world.nbatches) + " batches drawn, " + string(world.vis_count) + " of " + string(world.nsec) + " sectors visible)");
     }
     else
     {

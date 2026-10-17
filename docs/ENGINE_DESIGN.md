@@ -119,40 +119,62 @@ consequences to settle before the first public release:
 
 ## 4. World model (sectors + portals)
 
-A level is a JSON-able struct:
+A level is **JSON v1** (`scr_level`, `docs/CONTENT_TOOLS.md` §A6), read by
+`level_load` and written by `level_save`. Missing keys get defaults, so older
+files keep loading. The test level is `datafiles/levels/test.json`, written from
+`world_test_level()` with `build.ps1 -SaveLevel datafiles\levels\test.json`.
 
 ```
 level = {
-    name, version,
-    sectors: [
-        {
-            pts:   [x0, y0, x1, y1, ...],     // polygon, any winding; edge i = pt i -> pt i+1
-            floor, ceil,                       // heights (world units)
-            ftex, ctex,                        // texture names
-            light,                             // 0..1
-            edges: [ { tex, portal } , ... ]   // one per edge; portal = neighbour sector or -1
-        }, ...
-    ],
-    things: [ { type, x, y, angle, ... } ]     // later: player start, monsters, items, lights
+    version: 1, name,
+    settings: { music, sky, fog, gravity, par, next, secret_next },
+    vertices: [ [x, y], ... ],
+    sectors:  [ { floor, ceil, ftex, ctex, light, tag, special,
+                  fslope: { edge, rise }, cslope: { edge, rise } } ],
+    edges:    [ { v0, v1, front, back, flags, action,
+                  sides: [ { upper, middle, lower, ox, oy, sx, sy } x 2 ] } ],
+    things:   [ { type, x, y, z, angle, tag, flags } ]
 }
 ```
 
-* A **solid edge** draws a full wall floor -> ceil.
-* A **portal edge** draws a *lower* wall when the neighbour's floor is higher and an
-  *upper* wall when the neighbour's ceiling is lower. Each sector only draws the
-  faces that look into itself, so shared edges never draw twice.
-* Room-over-room (Unreal / Build style) comes from portals between sectors that
-  overlap in plan but not in height — the sector lookup must test height as well
-  as the polygon (planned, not in the skeleton).
-* Floors / ceilings are triangulated **once at load** (fan for convex sectors in
-  the skeleton; ear clipping for concave ones is next).
-* **Static geometry is baked into one frozen vertex buffer per texture**
-  (`vertex_freeze`) — a few dozen `vertex_submit` calls per frame for a whole
-  level. Doors / lifts are separate small buffers with their own matrix.
-* **Visibility** (later): portal flood from the camera's sector with a screen-rect
-  clip, then only submit buffers of visible sectors (buffers per sector group).
-* Sloped floors / ceilings (Build / Quake look): per-sector plane `(z, dz/dx, dz/dy)`
-  — planned.
+* **Edges are stored once** (Doom linedefs). The front sector is on the right of
+  `v0 -> v1` on the plan (Y down), the back on the left; `back -1` is a solid
+  wall. `sides[0]` faces the front, `sides[1]` the back, so a portal's two faces
+  carry their own textures. Sectors have no polygon of their own: `world_bake`
+  traces their **loops** from the edges (outer loops plus holes, e.g. a pillar).
+* A **one-sided** edge draws its middle texture floor -> ceil. A **portal** draws
+  a *lower* wall where the other floor is higher and an *upper* wall where the
+  other ceiling is lower; each side draws only the faces that look into its own
+  sector. A middle texture on a portal is **see-through** (grates; alpha test in
+  `sh_world`); `EDGE_BLOCK` makes it solid to movement.
+* **Slopes:** a hinge edge plus a rise. The plane is at the sector's floor (ceil)
+  height along the hinge and `rise` higher at the sector's furthest point; it is
+  baked to `z = a*x + b*y + c` and used by the renderer, collision and movers.
+* **Triangulation:** ear clipping (`scr_tri`), holes bridged into their outer
+  loop first (Eberly), so concave sectors and sectors with holes work.
+* **Static geometry** is frozen once per **sector group** (a few neighbouring
+  sectors) and texture, a few dozen `vertex_submit` calls per frame.
+* **Movers** (door, lift, crusher, floor / ceiling, `scr_mover`) change a
+  sector's floor / ceiling offset. Each plane's travel is worked out at bake time
+  from the actions that target it. The moving flat, and the walls whose visible
+  edge *is* that plane (a door's face, a lift's front), are small separate
+  buffers drawn with a translate matrix. Every other wall next to it is static and
+  baked over the whole travel; the part beyond the plane is hidden behind it.
+* **Edge actions**: trigger `use` (E) / `walk` (centre crosses the edge) /
+  `shoot` (hitscan), once or repeat, effect on every sector with the action's tag
+  (tag 0 = the edge's back sector, like Doom's door lines).
+* **Visibility** (`scr_vis`): flood from the camera's sector through portals
+  that face the eye. Each portal opening (as it is now; closed doors stop it) is
+  near-clipped, projected and clipped to the window of the sector it is seen
+  from. Only groups holding a reached sector, and moving planes next to one, are
+  drawn. F8 turns it off; `build.ps1 -NoVis` shots must come out identical.
+* **Collision** (`scr_pawn`): circle against edges via a 128-unit blockmap,
+  sliding, step / headroom rules on two-sided edges, floor / ceiling height
+  under the whole circle (Doom's floorz / ceilingz). Lifts carry the pawn; doors
+  reopen and crushers back off when they reach it (no damage yet).
+* Room-over-room: `world_sector_at` takes the feet height and picks the highest
+  floor at most a step above them where sectors overlap in plan. Rendering
+  and portals already work in 3D; nothing in the test level uses it yet.
 
 ## 5. Textures and sprites
 
@@ -244,12 +266,16 @@ before them is done.
    CRT, walkable test level, auto-screenshot self-test, Editor / Player configs.
 2. **Audio core** (blocked: needs a C++ compiler, Zig 0.13 or mingw g++):
    sid64 fork with dual mix + PCM, play-queue streaming.
-3. **World runtime:**
+3. **World runtime** ✔ (§4):
    * level JSON v1 (vertices / sectors / two-sided edges / things) with load and save;
-   * ear clipping, slopes;
+   * ear clipping, slopes, see-through middle textures;
    * radius collision with sliding;
-   * movers (doors, lifts, crushers), edge actions and tags;
+   * movers (doors, lifts, crushers, floor / ceiling), edge actions and tags, use key;
    * portal visibility.
+
+   Left for later: damage from crushers (needs §B3), the rest of the §A4
+   specials (stairs raise, light change, teleport, exit, secret, music change,
+   scrolling floor), texture pegging, room-over-room in the test level.
 4. **Editor shell** (CONTENT_TOOLS §D): UI kit, pages, viewport widgets (camera,
    grid, gizmos, picking), command undo, project folder.
 5. ‖ **Level Editor** (§A): plan view, 3D Build-style editing, drawing tools,
@@ -277,6 +303,28 @@ frame (and `out.png_raw.png`, the frame before the lock), checks every pixel of
 the locked frame is a Pepto colour, prints `AUTOSHOT ... ok` or `... FAIL` and
 quits. `NTC64_AUTOSHOT_SWATCHES=1` adds the F2 debug strip (16 swatches that must
 come through the lock unchanged, plus every texture). Shots: `docs/shots/`.
+
+More switches for the world runtime:
+* `-Frames n` takes the shot at frame n instead of 30.
+* `-Use` presses the use key at frame 2 (open a door, call a lift).
+* `-Walk "f36,t-90,f70,e,w70,f200,p"` drives the pawn *with collision* (a pose
+  then only sets the start): `f/b<n>` forward / back n frames, `l/r<n>` strafe,
+  `w<n>` wait, `t<deg>` turn left, `e` use, `s` shoot, `p` logs
+  `WALK frame: x, y, z sector last-action`.
+* `-NoVis` turns portal culling off; a shot must come out byte-identical with and
+  without it.
+
+Checks used for milestone 3 (`m3_*` shots):
+
+| What | Command (after `-Shot x.png`) | Expect |
+|---|---|---|
+| Stairs into the hall | `-Walk "f200,p" -Frames 220` | `896, 256, 64 sector 5` |
+| Door blocks, then opens | `-Walk "f36,t-90,f70,p,e,w70,f200,p" -Frames 400` | `240, 500` then `240, 948 sector 10` |
+| Slide along a wall | `-Walk "t60,f120,p" -Frames 130` | `336, 12` |
+| Lift ride | `-Pose "1024,600,64,270,0" -Walk "e,w40,f20,w160,p" -Frames 230` | z `192`, sector 7 |
+| Ramp | `-Pose "200,864,0,180,0" -Walk "f60,p" -Frames 70` | `-40, 864, 26` |
+| Shoot the target | `-Pose "850,330,64,0,0" -Walk "s,w50" -Frames 60` | `ACTION shoot edge 26: floor`, platform up |
+| Culling is exact | any pose, with and without `-NoVis` | identical PNGs |
 
 ### Palette lock notes (learned the hard way)
 * Colour distance is RGB weighted **2:4:3**. Luma weights (0.3 / 0.59 / 0.11)
