@@ -5,7 +5,11 @@
 ///   DISPLAY  fullscreen, window size, Pepto dither, debug views
 ///   CRT      on / off, scanlines off / progressive / interlaced, blur, curvature ...
 /// Engine core: the Player has it too (without the Editor button and debug views).
-/// State on obj_engine (Create): menu_open, menu_tab, menu_crt_defs.
+/// The panel can be dragged by its title bar and made see-through (opacity 0.5,
+/// no dimming of the game; off by default) so picture settings can be tuned while
+/// watching the game. Both are remembered in settings.ini.
+/// State on obj_engine (Create): menu_open, menu_tab, menu_crt_defs, menu_x,
+/// menu_y (-1 = centred), menu_drag, menu_dx, menu_dy, menu_seethrough.
 
 #macro MENU_TAB_GAME 0
 #macro MENU_TAB_DISPLAY 1
@@ -24,7 +28,9 @@ function menu_open_now()
 function menu_close()
 {
     menu_open = false;
+    menu_drag = false;
     ui_active = "";
+    window_set_cursor(cr_default);
     if (settings_dirty)
     {
         settings_save();
@@ -103,24 +109,86 @@ function menu_draw()
         return;
     }
 
-    // Dim the paused game behind the menu
-    draw_set_alpha(0.55);
-    ui_rect(0, 0, display_get_gui_width(), display_get_gui_height(), _c.dark, false);
-    draw_set_alpha(1);
-
     var _s = ui_s;
+    var _gw = display_get_gui_width();
+    var _gh = display_get_gui_height();
     // Tallest tab (CRT): title, tabs, toggle, scanlines, 11 sliders, footer
     var _pw = 380 * _s;
     var _ph = 8 * _s + (ui_row + 4 * _s) * 2 + (ui_row + 3 * _s) * 2 + ui_row * 11 + ui_row + 16 * _s;
-    var _x1 = floor((display_get_gui_width() - _pw) / 2);
-    var _y1 = floor((display_get_gui_height() - _ph) / 2);
+    var _bar = ui_row + 6 * _s;     // title bar: drag handle
+
+    // --- Position: centred until dragged, always kept on screen ---
+    if (menu_x < 0 || menu_y < 0)
+    {
+        menu_x = floor((_gw - _pw) / 2);
+        menu_y = floor((_gh - _ph) / 2);
+    }
+    var _stw = (string_width("See-through") + 2 * UI_PAD) * _s + (ui_row - 4 * _s);
+    var _st_x = menu_x + _pw - 8 * _s - _stw;
+    var _st_y = menu_y + 3 * _s;
+    var _on_bar = ui_hover(menu_x, menu_y, menu_x + _pw, menu_y + _bar);
+    var _on_st = ui_hover(_st_x, _st_y, _st_x + _stw, _st_y + ui_row);
+    if (_on_bar && !_on_st && ui_pressed && !ui_used)
+    {
+        menu_drag = true;
+        menu_dx = ui_mx - menu_x;
+        menu_dy = ui_my - menu_y;
+        ui_used = true;
+    }
+    if (menu_drag)
+    {
+        if (ui_down)
+        {
+            menu_x = ui_mx - menu_dx;
+            menu_y = ui_my - menu_dy;
+        }
+        else
+        {
+            menu_drag = false;
+            settings_dirty = true;
+        }
+    }
+    menu_x = clamp(menu_x, 0, max(0, _gw - _pw));
+    menu_y = clamp(menu_y, 0, max(0, _gh - _ph));
+    if (_on_bar || menu_drag)
+    {
+        window_set_cursor(cr_size_all);
+    }
+    else
+    {
+        window_set_cursor(cr_default);
+    }
+
+    // Dim the paused game behind the menu - unless it is see-through, so the
+    // CRT / dither changes can be watched while they are made
+    if (!menu_seethrough)
+    {
+        draw_set_alpha(0.55);
+        ui_rect(0, 0, _gw, _gh, _c.dark, false);
+    }
+    var _alpha = 1;
+    if (menu_seethrough)
+    {
+        _alpha = 0.5;
+    }
+    draw_set_alpha(_alpha);
+
+    var _x1 = menu_x;
+    var _y1 = menu_y;
     ui_panel(_x1, _y1, _x1 + _pw, _y1 + _ph);
+    ui_rect(_x1, _y1, _x1 + _pw, _y1 + _bar, _c.edge, false);
 
     var _x = _x1 + 10 * _s;
     var _w = _pw - 20 * _s;
-    var _y = _y1 + 8 * _s;
-    ui_text(_x, _y, "NOTtheC64GameEngine " + build_program_name() + " " + NTC64_VERSION, _c.bright);
-    _y += ui_row + 4 * _s;
+    var _y = _y1 + 4 * _s;
+    ui_text(_x, _y, "OPTIONS  " + build_program_name() + " " + NTC64_VERSION, _c.panel);
+    var _see = ui_toggle_on_bar(_st_x, _st_y, _stw, "See-through", menu_seethrough);
+    if (_see != menu_seethrough)
+    {
+        menu_seethrough = _see;
+        settings_dirty = true;
+    }
+    _y = _y1 + _bar + 6 * _s;
 
     menu_tab = ui_tabs(_x, _y, _w, ["GAME", "DISPLAY", "CRT"], menu_tab);
     _y += ui_row + 4 * _s;
@@ -170,13 +238,25 @@ function menu_draw()
         ui_text(_x, _y + 2 * _s, "(or drag the window edges to any size)", _c.text);
         _y += _row + 4 * _s;
 
-        var _d = ui_slider("dither", _x, _y, _w, "Pepto dither", dither, 0, 1, 0);
+        var _dm = ui_stepper(_x, _y, _w, "Dither (F4)", menu_dither_names, dither_mode, true);
+        if (_dm != dither_mode)
+        {
+            dither_mode = _dm;
+            settings_dirty = true;
+        }
+        _y += _row;
+        var _d = ui_slider("dither", _x, _y, _w, "Dither amount", dither, 0, 1, 0);
         if (_d != dither)
         {
             dither = _d;
             settings_dirty = true;
         }
-        _y += _row + 4 * _s;
+        _y += _row;
+        if (dither_mode >= DITHER_ED_FIRST && !fx_ok)
+        {
+            ui_text(_x, _y + 2 * _s, "(ntc64fx.dll missing: shown as Bayer 4x4)", _c.text);
+        }
+        _y += _row;
 
         show_debug = ui_toggle(_x, _y, _w, "Debug text (F1)", show_debug);
         _y += _row;
@@ -223,5 +303,6 @@ function menu_draw()
         }
     }
 
-    ui_text(_x, _y1 + _ph - ui_row, "Esc: back to the game", _c.text);
+    ui_text(_x, _y1 + _ph - ui_row, "Esc: back to game. Drag the bar to move.", _c.text);
+    draw_set_alpha(1);
 }

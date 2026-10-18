@@ -1,5 +1,5 @@
 /// scr_settings
-/// Per-machine display settings (window, picture, CRT), kept in settings.ini in
+/// Per-machine display settings (window, picture, CRT, menu panel place), kept in settings.ini in
 /// the game's save folder. Engine core: the Player has its own copy per game.
 /// State on obj_engine (Create): set_fullscreen, set_win_scale, settings_dirty,
 /// plus dither, fx_crt_on and fx (scr_postfx).
@@ -14,6 +14,10 @@ function settings_load()
     set_fullscreen = ini_read_real("display", "fullscreen", set_fullscreen) != 0;
     set_win_scale = clamp(round(ini_read_real("display", "window_scale", set_win_scale)), 1, WIN_SCALE_MAX);
     dither = clamp(ini_read_real("picture", "dither", dither), 0, 1);
+    dither_mode = clamp(round(ini_read_real("picture", "dither_mode", dither_mode)), 0, DITHER_COUNT - 1);
+    menu_x = ini_read_real("menu", "x", menu_x);
+    menu_y = ini_read_real("menu", "y", menu_y);
+    menu_seethrough = ini_read_real("menu", "see_through", menu_seethrough) != 0;
     fx_crt_on = ini_read_real("crt", "on", fx_crt_on) != 0;
     fx.crt_scan_mode = clamp(round(ini_read_real("crt", "scan_mode", fx.crt_scan_mode)), SCAN_OFF, SCAN_INTERLACED);
     var _defs = postfx_slider_defs();
@@ -32,6 +36,10 @@ function settings_save()
     ini_write_real("display", "fullscreen", set_fullscreen);
     ini_write_real("display", "window_scale", set_win_scale);
     ini_write_real("picture", "dither", dither);
+    ini_write_real("picture", "dither_mode", dither_mode);
+    ini_write_real("menu", "x", menu_x);
+    ini_write_real("menu", "y", menu_y);
+    ini_write_real("menu", "see_through", menu_seethrough);
     ini_write_real("crt", "on", fx_crt_on);
     ini_write_real("crt", "scan_mode", fx.crt_scan_mode);
     var _defs = postfx_slider_defs();

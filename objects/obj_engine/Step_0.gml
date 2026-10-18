@@ -33,6 +33,19 @@ if (keyboard_check_pressed(vk_f2))
         show_swatches = true;
     }
 }
+if (keyboard_check_pressed(vk_f4))
+{
+    // Next dither mode (Shift: previous)
+    if (keyboard_check(vk_shift))
+    {
+        dither_mode = (dither_mode - 1 + DITHER_COUNT) mod DITHER_COUNT;
+    }
+    else
+    {
+        dither_mode = (dither_mode + 1) mod DITHER_COUNT;
+    }
+    settings_save();
+}
 if (keyboard_check_pressed(vk_f5))
 {
     if (dither > 0)

@@ -154,6 +154,30 @@ function ui_toggle(_x, _y, _w, _label, _val)
     return _val;
 }
 
+/// @desc On / off box drawn in dark colours, for light title bars. Returns the new value.
+function ui_toggle_on_bar(_x, _y, _w, _label, _val)
+{
+    var _c = ui_colours();
+    var _h = ui_row;
+    var _box = ui_row - 4 * ui_s;
+    var _col = _c.panel;
+    if (ui_hover(_x, _y, _x + _w, _y + _h))
+    {
+        _col = _c.bright;
+    }
+    ui_rect(_x, _y + 2 * ui_s, _x + _box, _y + 2 * ui_s + _box, _col, true);
+    if (_val)
+    {
+        ui_rect(_x + 2 * ui_s, _y + 4 * ui_s, _x + _box - 2 * ui_s, _y + _box, _col, false);
+    }
+    ui_text(_x + _box + UI_PAD * ui_s, _y + 2 * ui_s, _label, _col);
+    if (ui_click(_x, _y, _x + _w, _y + _h))
+    {
+        return !_val;
+    }
+    return _val;
+}
+
 /// @desc A row of exclusive options. Returns the new index.
 function ui_choice(_x, _y, _w, _label, _opts, _idx, _enabled)
 {
@@ -257,6 +281,61 @@ function ui_slider(_id, _x, _y, _w, _label, _val, _lo, _hi, _step)
     ui_text(_x + _w, _y + 2 * ui_s, _txt, _c.bright);
     draw_set_halign(fa_left);
     return _val;
+}
+
+/// @desc "< name >" stepper through a list (wraps). Returns the new index.
+function ui_stepper(_x, _y, _w, _label, _names, _idx, _enabled)
+{
+    var _c = ui_colours();
+    var _h = ui_row;
+    var _lw = UI_LABEL_W * ui_s;
+    var _aw = ui_row;
+    var _n = array_length(_names);
+    var _out = _idx;
+    var _lc = _c.text;
+    if (!_enabled)
+    {
+        _lc = _c.dim;
+    }
+    ui_text(_x, _y + 2 * ui_s, _label, _lc);
+
+    var _lx = _x + _lw;
+    var _rx = _x + _w - _aw;
+    var _cols = [_lc, _lc];
+    if (_enabled && ui_hover(_lx, _y, _lx + _aw, _y + _h))
+    {
+        _cols[0] = _c.hot;
+    }
+    if (_enabled && ui_hover(_rx, _y, _rx + _aw, _y + _h))
+    {
+        _cols[1] = _c.hot;
+    }
+    ui_rect(_lx, _y, _lx + _aw, _y + _h, _cols[0], true);
+    ui_rect(_rx, _y, _rx + _aw, _y + _h, _cols[1], true);
+    ui_rect(_lx + _aw + ui_s, _y, _rx - ui_s, _y + _h, _lc, true);
+    draw_set_halign(fa_center);
+    ui_text(_lx + _aw / 2, _y + 2 * ui_s, "<", _cols[0]);
+    ui_text(_rx + _aw / 2, _y + 2 * ui_s, ">", _cols[1]);
+    var _name = "";
+    if (_idx >= 0 && _idx < _n)
+    {
+        _name = _names[_idx];
+    }
+    ui_text((_lx + _aw + _rx) / 2, _y + 2 * ui_s, _name, _c.bright);
+    draw_set_halign(fa_left);
+
+    if (_enabled && _n > 0)
+    {
+        if (ui_click(_lx, _y, _lx + _aw, _y + _h))
+        {
+            _out = (_idx - 1 + _n) mod _n;
+        }
+        if (ui_click(_rx, _y, _rx + _aw, _y + _h))
+        {
+            _out = (_idx + 1) mod _n;
+        }
+    }
+    return _out;
 }
 
 /// @desc Tab strip. Returns the new tab index.

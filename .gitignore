@@ -7,3 +7,6 @@
 *.yydebug
 .claude/settings.local.json
 /tools/zig/
+/tools/ntc64fx/*.dll
+/tools/ntc64fx/*.lib
+/tools/ntc64fx/*.pdb

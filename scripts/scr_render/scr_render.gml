@@ -5,7 +5,8 @@
 ///   Draw GUI: rt_locked -> window, letterboxed, through sh_crt when it is on
 ///
 /// State on obj_engine (Create): rt_world, rt_locked, cam, rw_u, lock_u,
-/// lock_on, dither, pepto_u_array, shot_path, shot_frame, shot_use, frame_no.
+/// lock_on, dither, dither_mode, fx_ok, ed_buf, pepto_u_array, shot_path,
+/// shot_frame, shot_use, frame_no.
 
 #macro RENDER_W 320
 #macro RENDER_H 200
@@ -19,6 +20,34 @@
 /// Frames to wait before the auto-screenshot self-test fires.
 #macro AUTOSHOT_FRAME 30
 
+// --- Dither modes (dither_mode). 0..8 are threshold patterns in sh_pepto_lock;
+// 9.. are error diffusion, run on the CPU in the ntc64fx DLL. ---
+#macro DITHER_BAYER4 0
+#macro DITHER_BAYER8 1
+#macro DITHER_CHECKER 2
+#macro DITHER_LINES 3
+#macro DITHER_LINES_CHECKER 4
+#macro DITHER_NOISE 5
+#macro DITHER_NOISE_ANIM 6
+#macro DITHER_BLUE 7
+#macro DITHER_BLUE_ANIM 8
+#macro DITHER_FLOYD 9
+#macro DITHER_ATKINSON 10
+#macro DITHER_SIERRA 11
+#macro DITHER_JJN 12
+#macro DITHER_COUNT 13
+/// First error-diffusion mode; kernel = mode - DITHER_ED_FIRST in fx_dither_ed
+#macro DITHER_ED_FIRST 9
+
+function dither_mode_names()
+{
+    return [
+        "Bayer 4x4", "Bayer 8x8", "Checker", "Interlace lines", "Lines + checker",
+        "Noise", "Noise (animated)", "Blue noise", "Blue noise (anim.)",
+        "Floyd-Steinberg", "Atkinson", "Sierra Lite", "Jarvis-Judice-Ninke"
+    ];
+}
+
 function render_uniforms()
 {
     rw_u = {
@@ -27,8 +56,42 @@ function render_uniforms()
     lock_u = {
         pal: shader_get_uniform(sh_pepto_lock, "u_pal"),
         dither: shader_get_uniform(sh_pepto_lock, "u_dither"),
-        on: shader_get_uniform(sh_pepto_lock, "u_on")
+        on: shader_get_uniform(sh_pepto_lock, "u_on"),
+        mode: shader_get_uniform(sh_pepto_lock, "u_mode"),
+        frame: shader_get_uniform(sh_pepto_lock, "u_frame")
     };
+}
+
+/// @desc Load the ntc64fx DLL (error diffusion) and hand it the Pepto palette.
+/// Without it the error-diffusion modes fall back to Bayer 4x4.
+function render_fx_init()
+{
+    fx_ok = false;
+    try
+    {
+        if (fx_version() >= 1)
+        {
+            fx_ok = true;
+        }
+    }
+    catch (_e)
+    {
+        show_debug_message("render: ntc64fx extension unavailable, no error diffusion (" + string(_e.message) + ")");
+    }
+    ed_buf = buffer_create(RENDER_W * RENDER_H * 4, buffer_fixed, 1);
+    if (fx_ok)
+    {
+        var _pal = buffer_create(PEPTO_COUNT * 3, buffer_fixed, 1);
+        for (var _i = 0; _i < PEPTO_COUNT; _i++)
+        {
+            var _c = global.PEPTO_RGB[_i];
+            buffer_write(_pal, buffer_u8, _c[0]);
+            buffer_write(_pal, buffer_u8, _c[1]);
+            buffer_write(_pal, buffer_u8, _c[2]);
+        }
+        fx_set_palette(buffer_get_address(_pal), PEPTO_COUNT);
+        buffer_delete(_pal);
+    }
 }
 
 function render_ensure_surfaces()
@@ -110,6 +173,21 @@ function render_lock()
 {
     render_ensure_surfaces();
 
+    // Error diffusion: read the frame back, dither it in the DLL, upload it
+    if (lock_on && fx_ok && dither_mode >= DITHER_ED_FIRST)
+    {
+        buffer_get_surface(ed_buf, rt_world, 0);
+        fx_dither_config(dither_mode - DITHER_ED_FIRST, dither, 1);
+        fx_dither_ed(buffer_get_address(ed_buf), RENDER_W, RENDER_H);
+        buffer_set_surface(ed_buf, rt_locked, 0);
+        return;
+    }
+    var _mode = dither_mode;
+    if (_mode >= DITHER_ED_FIRST)
+    {
+        _mode = DITHER_BAYER4;
+    }
+
     surface_set_target(rt_locked);
     draw_clear_alpha(c_black, 1);
     gpu_set_tex_filter(false);
@@ -117,6 +195,8 @@ function render_lock()
     shader_set(sh_pepto_lock);
     shader_set_uniform_f_array(lock_u.pal, pepto_u_array);
     shader_set_uniform_f(lock_u.dither, dither);
+    shader_set_uniform_f(lock_u.mode, _mode);
+    shader_set_uniform_f(lock_u.frame, frame_no);
     if (lock_on)
     {
         shader_set_uniform_f(lock_u.on, 1);
@@ -172,6 +252,10 @@ function render_free()
     rt_world = -1;
     rt_locked = -1;
     camera_destroy(cam);
+    if (buffer_exists(ed_buf))
+    {
+        buffer_delete(ed_buf);
+    }
 }
 
 // ============================================================

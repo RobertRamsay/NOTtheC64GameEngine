@@ -339,6 +339,22 @@ Checks used for milestone 3 (`m3_*` shots):
 | Shoot the target | `-Pose "850,330,64,0,0" -Walk "s,w50" -Frames 60` | `ACTION shoot edge 26: floor`, platform up |
 | Culling is exact | any pose, with and without `-NoVis` | identical PNGs |
 
+### Dither modes (Options > Display, F4; sheet in `docs/shots/dither_modes.png`)
+* **Threshold patterns:** these run per pixel in `sh_pepto_lock` and are free.
+  The modes are Bayer 4x4 (default), Bayer 8x8, checker, interlace lines,
+  lines + checker, white noise (static or animated) and interleaved-gradient
+  "blue" noise (static or animated).
+* **Error diffusion:** Floyd-Steinberg, Atkinson, Sierra Lite and
+  Jarvis-Judice-Ninke.
+  * These can't run per pixel, so the frame is read back, dithered in the
+    `ntc64fx` DLL (serpentine scan) and uploaded again.
+  * At 320 x 200 that is well under a millisecond plus one readback.
+  * Expect "crawling" patterns while the camera moves: that is the nature of
+    error diffusion.
+  * Without the DLL these modes fall back to Bayer 4x4.
+* **Dither amount** (0..1) scales the pattern or the diffused error. 0 is the
+  plain nearest colour.
+
 ### Palette lock notes (learned the hard way)
 * Colour distance is RGB weighted **2:4:3**. Luma weights (0.3 / 0.59 / 0.11)
   under-count red and blue errors, and dim greys snap to blue / brown.

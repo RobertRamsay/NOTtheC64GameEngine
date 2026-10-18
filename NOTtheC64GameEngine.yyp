@@ -44,6 +44,7 @@
     {"id":{"name":"scr_ui","path":"scripts/scr_ui/scr_ui.yy",},},
     {"id":{"name":"scr_vis","path":"scripts/scr_vis/scr_vis.yy",},},
     {"id":{"name":"scr_world","path":"scripts/scr_world/scr_world.yy",},},
+    {"id":{"name":"ntc64fx","path":"extensions/ntc64fx/ntc64fx.yy",},},
     {"id":{"name":"sid64","path":"extensions/sid64/sid64.yy",},},
     {"id":{"name":"sh_crt","path":"shaders/sh_crt/sh_crt.yy",},},
     {"id":{"name":"sh_pepto_lock","path":"shaders/sh_pepto_lock/sh_pepto_lock.yy",},},

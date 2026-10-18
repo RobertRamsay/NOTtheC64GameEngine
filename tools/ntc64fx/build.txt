@@ -1,0 +1,9 @@
+ntc64fx - native picture effects (error-diffusion dithering to Pepto) for NOTtheC64GameEngine.
+Our own code, not GPL.
+
+Windows build (Zig 0.13.0 in tools/zig, git-ignored), from tools/ntc64fx in Git Bash:
+  ../zig/zig.exe c++ -target x86_64-windows-gnu -O2 -w -shared -static -std=c++11 -o ntc64fx.dll ntc64fx.cpp
+then copy ntc64fx.dll to extensions/ntc64fx/ (delete the .lib / .pdb it also writes)
+and rebuild the GameMaker game.
+
+macOS (later): clang++ -O2 -dynamiclib -arch x86_64 -arch arm64 -std=c++11 -o libntc64fx.dylib ntc64fx.cpp

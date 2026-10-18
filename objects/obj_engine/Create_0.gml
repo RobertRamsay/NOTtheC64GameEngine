@@ -46,6 +46,10 @@ lock_u = {};
 render_uniforms();
 lock_on = true;
 dither = 1.0;
+dither_mode = DITHER_BAYER4;
+fx_ok = false;
+ed_buf = -1;
+render_fx_init();
 show_debug = true;
 show_swatches = false;
 frame_no = 0;
@@ -66,6 +70,13 @@ ui_used = false;
 menu_open = false;
 menu_tab = MENU_TAB_GAME;
 menu_crt_defs = postfx_slider_defs();
+menu_dither_names = dither_mode_names();
+menu_x = -1;                // -1 = centred until dragged
+menu_y = -1;
+menu_drag = false;
+menu_dx = 0;
+menu_dy = 0;
+menu_seethrough = false;    // opaque by default
 
 // --- Settings (scr_settings): defaults, then settings.ini over them ---
 set_fullscreen = false;
@@ -116,12 +127,30 @@ shot_walk = [];
 shot_walk_i = 0;
 shot_walk_left = 0;
 autoshot_setup();
+var _dith = environment_get_variable("NTC64_AUTOSHOT_DITHER");
+if (shot_path != "" && _dith != "")
+{
+    // build.ps1 -Dither "mode[,amount]"
+    var _dp = string_split(_dith, ",");
+    dither_mode = clamp(real(_dp[0]), 0, DITHER_COUNT - 1);
+    if (array_length(_dp) > 1)
+    {
+        dither = clamp(real(_dp[1]), 0, 1);
+    }
+}
 var _menu_tab = environment_get_variable("NTC64_AUTOSHOT_MENU");
 if (shot_path != "" && _menu_tab != "")
 {
     // build.ps1 -Menu <tab>: open the Options menu for the screenshot
+    // ("2s" = CRT tab, see-through, moved to the left edge)
     menu_open = true;
-    menu_tab = clamp(real(_menu_tab), MENU_TAB_GAME, MENU_TAB_CRT);
+    menu_tab = clamp(real(string_digits(_menu_tab)), MENU_TAB_GAME, MENU_TAB_CRT);
+    if (string_pos("s", _menu_tab) > 0)
+    {
+        menu_seethrough = true;
+        menu_x = 8;
+        menu_y = 8;
+    }
 }
 if (shot_path != "")
 {
